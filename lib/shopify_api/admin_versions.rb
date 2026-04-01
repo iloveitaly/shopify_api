@@ -5,6 +5,7 @@ module ShopifyAPI
   module AdminVersions
     SUPPORTED_ADMIN_VERSIONS = T.let([
       "unstable",
+      "2026-07",
       "2026-04",
       "2026-01",
       "2025-10",
