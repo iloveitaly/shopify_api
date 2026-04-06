@@ -9,29 +9,27 @@ This guide provides step-by-step instructions for adding a new API version to th
 ## Step 1: Update API Version Constants
 
 ### Update admin_versions.rb
-Edit `lib/shopify_api/admin_versions.rb` to add your new version:
+Edit `lib/shopify_api/admin_versions.rb` to add your new version and the next upcoming release candidate:
 
 ```ruby
 module ShopifyAPI
   module AdminVersions
     SUPPORTED_ADMIN_VERSIONS = T.let([
       "unstable",
-      "2025-10",  # Add new version here
-      "2025-07",
-      "2025-04",
+      "2026-07",  # Next release candidate (always add the next quarterly version)
+      "2026-04",  # New version being added
+      "2026-01",
       # ... other versions
     ], T::Array[String])
-
-    LATEST_SUPPORTED_ADMIN_VERSION = T.let("2025-07", String)  # Update if this is the latest stable
-    RELEASE_CANDIDATE_ADMIN_VERSION = T.let("2025-10", String)  # Update if this is RC
   end
 end
 ```
 
 **Version Management:**
-- Add new versions to the top of `SUPPORTED_ADMIN_VERSIONS`
-- Update `LATEST_SUPPORTED_ADMIN_VERSION` when the version is stable
-- Update `RELEASE_CANDIDATE_ADMIN_VERSION` for release candidates
+- Add new versions to the top of `SUPPORTED_ADMIN_VERSIONS` (below "unstable")
+- Also add the **next quarterly version** as the upcoming release candidate
+  - Shopify API versions follow a quarterly cadence: 01, 04, 07, 10
+  - For example, when adding 2026-04, also add 2026-07
 
 ## Step 2: Create Directory Structure
 
@@ -147,8 +145,7 @@ bundle exec rake test TEST=test/rest/{NEW_VERSION}/*
 ## Checklist
 
 - [ ] Added new version to `SUPPORTED_ADMIN_VERSIONS` in `admin_versions.rb`
-- [ ] Updated `LATEST_SUPPORTED_ADMIN_VERSION` if applicable
-- [ ] Updated `RELEASE_CANDIDATE_ADMIN_VERSION` if applicable
+- [ ] Added next quarterly version as release candidate to `SUPPORTED_ADMIN_VERSIONS`
 - [ ] Created `lib/shopify_api/rest/resources/{NEW_VERSION}/` directory
 - [ ] Created `test/rest/{NEW_VERSION}/` directory
 - [ ] Copied all resource files from previous version
