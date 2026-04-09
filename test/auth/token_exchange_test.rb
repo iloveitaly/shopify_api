@@ -86,7 +86,6 @@ module ShopifyAPITest
 
         assert_raises(ShopifyAPI::Errors::ContextNotSetupError) do
           ShopifyAPI::Auth::TokenExchange.exchange_token(
-            shop: @shop,
             session_token: @session_token,
             requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
           )
@@ -98,7 +97,6 @@ module ShopifyAPITest
 
         assert_raises(ShopifyAPI::Errors::UnsupportedOauthError) do
           ShopifyAPI::Auth::TokenExchange.exchange_token(
-            shop: @shop,
             session_token: @session_token,
             requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
           )
@@ -110,7 +108,6 @@ module ShopifyAPITest
 
         assert_raises(ShopifyAPI::Errors::UnsupportedOauthError) do
           ShopifyAPI::Auth::TokenExchange.exchange_token(
-            shop: @shop,
             session_token: @session_token,
             requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
           )
@@ -122,7 +119,6 @@ module ShopifyAPITest
 
         assert_raises(ShopifyAPI::Errors::InvalidJwtTokenError) do
           ShopifyAPI::Auth::TokenExchange.exchange_token(
-            shop: @shop,
             session_token: "invalid",
             requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
           )
@@ -141,11 +137,44 @@ module ShopifyAPITest
 
         assert_raises(ShopifyAPI::Errors::InvalidJwtTokenError) do
           ShopifyAPI::Auth::TokenExchange.exchange_token(
-            shop: @shop,
             session_token: @session_token,
             requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
           )
         end
+      end
+
+      def test_exchange_token_deprecates_shop_argument
+        modify_context(is_embedded: true, expiring_offline_access_tokens: false)
+        ShopifyAPI::Logger.expects(:deprecated).with(
+          regexp_matches(/`shop` parameter for `exchange_token`/),
+          "17.0.0",
+        ).once
+
+        stub_request(:post, "https://#{@shop}/admin/oauth/access_token")
+          .with(body: @non_expiring_offline_token_exchange_request)
+          .to_return(body: @offline_token_response.to_json, headers: { content_type: "application/json" })
+
+        session = ShopifyAPI::Auth::TokenExchange.exchange_token(
+          shop: @shop,
+          session_token: @session_token,
+          requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
+        )
+
+        assert_equal(@shop, session.shop)
+      end
+
+      def test_exchange_token_without_shop_does_not_log_deprecation
+        modify_context(is_embedded: true, expiring_offline_access_tokens: false)
+        ShopifyAPI::Logger.expects(:deprecated).never
+
+        stub_request(:post, "https://#{@shop}/admin/oauth/access_token")
+          .with(body: @non_expiring_offline_token_exchange_request)
+          .to_return(body: @offline_token_response.to_json, headers: { content_type: "application/json" })
+
+        ShopifyAPI::Auth::TokenExchange.exchange_token(
+          session_token: @session_token,
+          requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
+        )
       end
 
       def test_exchange_token_offline_token
@@ -166,7 +195,6 @@ module ShopifyAPITest
         )
 
         session = ShopifyAPI::Auth::TokenExchange.exchange_token(
-          shop: @shop,
           session_token: @session_token,
           requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
         )
@@ -193,7 +221,6 @@ module ShopifyAPITest
 
         session = Time.stub(:now, @stubbed_time_now) do
           ShopifyAPI::Auth::TokenExchange.exchange_token(
-            shop: @shop,
             session_token: @session_token,
             requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
           )
@@ -220,13 +247,21 @@ module ShopifyAPITest
 
         session = Time.stub(:now, @stubbed_time_now) do
           ShopifyAPI::Auth::TokenExchange.exchange_token(
-            shop: @shop,
             session_token: @session_token,
             requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::ONLINE_ACCESS_TOKEN,
           )
         end
 
         assert_equal(expected_session, session)
+      end
+
+      def test_migrate_to_expiring_token_rejects_non_shopify_domain
+        assert_raises(ShopifyAPI::Errors::InvalidShopError) do
+          ShopifyAPI::Auth::TokenExchange.migrate_to_expiring_token(
+            shop: "attacker.example",
+            non_expiring_offline_token: "old-offline-token-123",
+          )
+        end
       end
 
       def test_migrate_to_expiring_token_context_not_setup

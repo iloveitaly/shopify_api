@@ -29,6 +29,15 @@ module ShopifyAPITest
         }
       end
 
+      def test_refresh_access_token_rejects_non_shopify_domain
+        assert_raises(ShopifyAPI::Errors::InvalidShopError) do
+          ShopifyAPI::Auth::RefreshToken.refresh_access_token(
+            shop: "attacker.example",
+            refresh_token: @refresh_token,
+          )
+        end
+      end
+
       def test_refresh_access_token_success
         stub_request(:post, "https://#{@shop}/admin/oauth/access_token")
           .with(body: @refresh_token_request)

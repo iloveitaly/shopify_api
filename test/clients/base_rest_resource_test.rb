@@ -8,10 +8,11 @@ module ShopifyAPITest
   module Rest
     class BaseTest < Test::Unit::TestCase
       def setup
+        super
+
         @session = ShopifyAPI::Auth::Session.new(shop: "test-shop.myshopify.com",
           access_token: SecureRandom.alphanumeric(10))
         @prefix = "https://#{@session.shop}/admin/api/#{ShopifyAPI::Context.api_version}"
-        ShopifyAPI::Context.load_rest_resources(api_version: ShopifyAPI::Context.api_version)
       end
 
       def test_rest_disabled

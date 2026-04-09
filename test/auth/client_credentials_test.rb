@@ -30,6 +30,12 @@ module ShopifyAPITest
         end
       end
 
+      def test_client_credentials_rejects_non_shopify_domain
+        assert_raises(ShopifyAPI::Errors::InvalidShopError) do
+          ShopifyAPI::Auth::ClientCredentials.client_credentials(shop: "attacker.example")
+        end
+      end
+
       def test_client_credentials_offline_token
         stub_request(:post, "https://#{@shop}/admin/oauth/access_token")
           .with(body: @client_credentials_request)

@@ -21,7 +21,8 @@ module ShopifyAPI
               "ShopifyAPI::Context not setup, please call ShopifyAPI::Context.setup"
           end
 
-          shop_session = ShopifyAPI::Auth::Session.new(shop:)
+          validated_shop = Utils::ShopValidator.sanitize!(shop)
+          shop_session = ShopifyAPI::Auth::Session.new(shop: validated_shop)
           body = {
             client_id: ShopifyAPI::Context.api_key,
             client_secret: ShopifyAPI::Context.api_secret_key,
@@ -47,7 +48,7 @@ module ShopifyAPI
           session_params = T.cast(response.body, T::Hash[String, T.untyped]).to_h
 
           Session.from(
-            shop:,
+            shop: validated_shop,
             access_token_response: Oauth::AccessTokenResponse.from_hash(session_params),
           )
         end

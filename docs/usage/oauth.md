@@ -72,9 +72,9 @@ exchange a [session token](https://shopify.dev/docs/apps/auth/session-tokens) (S
 #### Input
 | Parameter      | Type                   | Required? | Default Value | Notes                                                                                                       |
 | -------------- | ---------------------- | :-------: | :-----------: | ----------------------------------------------------------------------------------------------------------- |
-| `shop`         | `String` | Yes | - | A Shopify domain name in the form `{exampleshop}.myshopify.com`. |
-| `session_token` | `String` | Yes| - | The session token (Shopify Id Token) provided by App Bridge in either the request 'Authorization' header or URL param when the app is loaded in Admin. |
+| `session_token` | `String` | Yes| - | The session token (Shopify Id Token) provided by App Bridge in either the request 'Authorization' header or URL param when the app is loaded in Admin. Its `dest` claim determines which shop receives the token exchange request. |
 | `requested_token_type` | `TokenExchange::RequestedTokenType` | Yes | - | The type of token requested. Online: `TokenExchange::RequestedTokenType::ONLINE_ACCESS_TOKEN` or offline: `TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN`. |
+| `shop` | `String` | No | `nil` | **Deprecated**, will be removed in v17.0.0. Ignored for the request host; the shop always comes from the session token `dest` claim. If passed, logs a deprecation warning. |
 
 #### Output
 This method returns the new `ShopifyAPI::Auth::Session` object from the token exchange, 
@@ -83,14 +83,13 @@ your app should store this `Session` object to be used later [when making authen
 #### Example
 ```ruby
 
-# `shop` is the shop domain name - "this-is-my-example-shop.myshopify.com"
 # `session_token` is the session token provided by App Bridge either in:
 #   - the request 'Authorization' header as `Bearer this-is-the-session_token`
 #   - or as a URL param `id_token=this-is-the-session_token`
+# The shop is taken from the token's `dest` claim (see session token documentation).
 
-def authenticate(shop, session_token)
+def authenticate(session_token)
   session = ShopifyAPI::Auth::TokenExchange.exchange_token(
-     shop: shop,
      session_token: session_token,
      requested_token_type: ShopifyAPI::Auth::TokenExchange::RequestedTokenType::OFFLINE_ACCESS_TOKEN,
      # or if you're requesting an online access token:

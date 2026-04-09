@@ -32,6 +32,12 @@ module ShopifyAPITest
           end
         end
 
+        def test_rejects_non_shopify_domain
+          assert_raises(ShopifyAPI::Errors::InvalidShopError) do
+            ShopifyAPI::Clients::Graphql::Storefront.new("attacker.example", public_token: "token")
+          end
+        end
+
         def test_can_query_using_private_token
           query = <<~QUERY
             {
