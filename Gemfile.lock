@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    shopify_api (16.1.0)
+    shopify_api (16.2.0)
       activesupport
       concurrent-ruby
       hash_diff
@@ -60,8 +60,9 @@ GEM
     logger (1.6.1)
     method_source (1.0.0)
     mini_mime (1.1.5)
-    minitest (5.15.0)
-    mocha (1.13.0)
+    minitest (5.27.0)
+    mocha (3.0.1)
+      ruby2_keywords (>= 0.0.5)
     multi_xml (0.6.0)
     mutex_m (0.3.0)
     netrc (0.11.0)
@@ -109,6 +110,7 @@ GEM
     rubocop-sorbet (0.6.11)
       rubocop (>= 0.90.0)
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
     securerandom (0.3.2)
     sorbet (0.5.11230)
       sorbet-static (= 0.5.11230)
@@ -151,6 +153,8 @@ GEM
 PLATFORMS
   arm64-darwin-21
   arm64-darwin-23
+  arm64-darwin-24
+  arm64-darwin-25
   universal-darwin-22
   x86_64-linux
 
