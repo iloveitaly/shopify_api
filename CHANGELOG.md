@@ -2,7 +2,10 @@
 
 Note: For changes to the API, see https://shopify.dev/changelog?filter=api
 ## Unreleased
-- Add support for 2026-04 API version
+
+## 16.2.0 (2026-04-13)
+- [#1442](https://github.com/Shopify/shopify-api-ruby/pull/1442) Add support for 2026-04 API version
+- [#1437](https://github.com/Shopify/shopify-api-ruby/pull/1437) Support new `shopify-*` webhook header format
 
 ## 16.1.0 (2026-01-15)
 - Add support for 2026-01 API version
