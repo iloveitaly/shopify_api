@@ -19,9 +19,10 @@ module ShopifyAPI
             raise ArgumentError, "Storefront client requires either private_token or public_token to be provided"
           end
 
+          validated_shop = Utils::ShopValidator.sanitize!(shop)
           session = Auth::Session.new(
-            id: shop,
-            shop: shop,
+            id: validated_shop,
+            shop: validated_shop,
             access_token: "",
             is_online: false,
           )

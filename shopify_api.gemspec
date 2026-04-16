@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 3.2"
 
   s.add_runtime_dependency("activesupport")
+  s.add_runtime_dependency("addressable", "~> 2.7")
   s.add_runtime_dependency("concurrent-ruby")
   s.add_runtime_dependency("hash_diff")
   s.add_runtime_dependency("httparty")

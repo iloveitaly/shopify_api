@@ -21,12 +21,12 @@ module ShopifyAPI
 
         sig do
           params(
-            shop: String,
             session_token: String,
             requested_token_type: RequestedTokenType,
+            shop: T.nilable(String),
           ).returns(ShopifyAPI::Auth::Session)
         end
-        def exchange_token(shop:, session_token:, requested_token_type:)
+        def exchange_token(session_token:, requested_token_type:, shop: nil)
           unless ShopifyAPI::Context.setup?
             raise ShopifyAPI::Errors::ContextNotSetupError,
               "ShopifyAPI::Context not setup, please call ShopifyAPI::Context.setup"
@@ -36,10 +36,19 @@ module ShopifyAPI
           raise ShopifyAPI::Errors::UnsupportedOauthError,
             "Cannot perform OAuth Token Exchange for non embedded apps." unless ShopifyAPI::Context.embedded?
 
-          # Validate the session token content
-          ShopifyAPI::Auth::JwtPayload.new(session_token)
+          # Validate the session token and use the shop from the token's `dest` claim
+          jwt_payload = ShopifyAPI::Auth::JwtPayload.new(session_token)
+          dest_shop = jwt_payload.shop
 
-          shop_session = ShopifyAPI::Auth::Session.new(shop: shop)
+          if shop
+            ShopifyAPI::Logger.deprecated(
+              "The `shop` parameter for `exchange_token` is deprecated and will be removed in v17. " \
+                "The shop is now always taken from the session token's `dest` claim.",
+              "17.0.0",
+            )
+          end
+
+          shop_session = ShopifyAPI::Auth::Session.new(shop: dest_shop)
           body = {
             client_id: ShopifyAPI::Context.api_key,
             client_secret: ShopifyAPI::Context.api_secret_key,
@@ -74,7 +83,7 @@ module ShopifyAPI
           session_params = T.cast(response.body, T::Hash[String, T.untyped]).to_h
 
           Session.from(
-            shop: shop,
+            shop: dest_shop,
             access_token_response: Oauth::AccessTokenResponse.from_hash(session_params),
           )
         end
@@ -91,7 +100,8 @@ module ShopifyAPI
               "ShopifyAPI::Context not setup, please call ShopifyAPI::Context.setup"
           end
 
-          shop_session = ShopifyAPI::Auth::Session.new(shop: shop)
+          validated_shop = Utils::ShopValidator.sanitize!(shop)
+          shop_session = ShopifyAPI::Auth::Session.new(shop: validated_shop)
           body = {
             client_id: ShopifyAPI::Context.api_key,
             client_secret: ShopifyAPI::Context.api_secret_key,
@@ -120,7 +130,7 @@ module ShopifyAPI
           session_params = T.cast(response.body, T::Hash[String, T.untyped]).to_h
 
           Session.from(
-            shop: shop,
+            shop: validated_shop,
             access_token_response: Oauth::AccessTokenResponse.from_hash(session_params),
           )
         end

@@ -3,6 +3,7 @@ PATH
   specs:
     shopify_api (16.2.0)
       activesupport
+      addressable (~> 2.7)
       concurrent-ruby
       hash_diff
       httparty
